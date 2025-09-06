@@ -26,6 +26,7 @@
         <div
           v-for="(project, index) in projects"
           :key="project.id"
+          :data-animation="project.animationType"
           class="project-card bg-gray-800/40 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 transition-all duration-300 hover:border-purple-400/50 hover:shadow-2xl hover:shadow-purple-500/10"
           style="will-change: transform, opacity;"
         >
@@ -74,9 +75,16 @@ import { MotionPathPlugin } from 'gsap/MotionPathPlugin';
 gsap.registerPlugin(ScrollTrigger, TextPlugin, MotionPathPlugin);
 
 const projects = ref([
-  { id: 1, title: 'Project Apex', description: 'An immersive WebGL marketing site for a high-performance electric vehicle, featuring a 3D model configurator.', metrics: [{ value: 210, label: 'Engagement' }, { value: 1.5, label: 'Impressions' }], tech: ['Vue.js', 'Three.js', 'GSAP', 'Figma'] },
-  { id: 2, title: 'QuantumLeap AI', description: 'A futuristic landing page for a machine learning startup, showcasing complex data visualizations and animations.', metrics: [{ value: 45, label: 'Conversions' }, { value: 1, label: 'Performance' }], tech: ['React', 'D3.js', 'GSAP', 'Node.js'] },
-  { id: 3, title: 'Nova Commerce', description: 'A headless e-commerce platform with a focus on micro-interactions and a seamless, buttery-smooth user experience.', metrics: [{ value: -50, label: 'Load Time' }, { value: 88, label: 'Retention' }], tech: ['SvelteKit', 'Shopify API', 'Tailwind', 'GSAP'] }
+  { id: 1, title: 'Project Apex', description: 'An immersive WebGL marketing site for a high-performance electric vehicle.', metrics: [{ value: 210, label: 'Engagement' }, { value: 1.5, label: 'Impressions' }], tech: ['Vue.js', 'Three.js', 'GSAP'], animationType: 'from-bottom' },
+  { id: 2, title: 'QuantumLeap AI', description: 'A futuristic landing page for a machine learning startup with complex data visualizations.', metrics: [{ value: 45, label: 'Conversions' }, { value: 1, label: 'Performance' }], tech: ['React', 'D3.js', 'GSAP'], animationType: 'from-left' },
+  { id: 3, title: 'Nova Commerce', description: 'A headless e-commerce platform with a focus on micro-interactions.', metrics: [{ value: -50, label: 'Load Time' }, { value: 88, label: 'Retention' }], tech: ['SvelteKit', 'Shopify API'], animationType: 'from-right' },
+  { id: 4, title: 'Geospatial Insights', description: 'A data-heavy dashboard for visualizing satellite imagery and geographical data.', metrics: [{ value: 10, label: 'TB Data' }, { value: 200, label: 'Map Layers' }], tech: ['Angular', 'Mapbox', 'GSAP'], animationType: 'from-bottom' },
+  { id: 5, title: 'Artisan Collective', description: 'A beautifully crafted marketplace for handmade goods with a focus on storytelling.', metrics: [{ value: 1200, label: 'Artisans' }, { value: 30, label: 'Countries' }], tech: ['Next.js', 'Stripe', 'Tailwind'], animationType: 'from-left' },
+  { id: 6, title: 'HealthTrackr', description: 'A mobile-first wellness application with gamified challenges and community features.', metrics: [{ value: 500, label: 'k+ Users' }, { value: 4.8, label: 'Rating' }], tech: ['Vue Native', 'Firebase'], animationType: 'from-right' },
+  { id: 7, title: 'Echoes of History', description: 'An interactive historical archive bringing stories to life with audio and video.', metrics: [{ value: 1000, label: 'h Content' }, { value: 50, label: 'Historians' }], tech: ['Nuxt.js', 'GSAP', 'Vercel'], animationType: 'from-bottom' },
+  { id: 8, title: 'Synthwave Beats', description: 'A procedural music generator and visualizer with a retro 80s aesthetic.', metrics: [{ value: 1, label: 'M+ Tracks' }, { value: 10, label: 'Themes' }], tech: ['Tone.js', 'p5.js', 'GSAP'], animationType: 'from-left' },
+  { id: 9, title: 'Carbon Neutral', description: 'An educational platform about climate change with interactive infographics.', metrics: [{ value: 95, label: 'Accuracy' }, { value: 22, label: 'Languages' }], tech: ['React', 'GSAP', 'D3.js'], animationType: 'from-right' },
+  { id: 10, title: 'The Minimalist', description: 'A minimalist blogging platform focused on beautiful typography and a clean reading experience.', metrics: [{ value: 5, label: 'ms TTFB' }, { value: 100, label: 'Lighthouse' }], tech: ['Astro', 'MDX', 'Tailwind'], animationType: 'from-bottom' }
 ]);
 
 const main = ref(null);
@@ -91,80 +99,91 @@ onMounted(() => {
     const motionMatch = window.matchMedia("(prefers-reduced-motion: reduce)");
 
     if (motionMatch.matches) {
-      // If reduced motion is preferred, just show the counters
-      const metricElements = self.selector('[data-metric-value]');
-      metricElements.forEach(el => {
+      // Static display for reduced motion
+      self.selector('[data-metric-value]').forEach(el => {
         const targetValue = parseFloat(el.dataset.metricValue);
-        const isPercentage = ['engagement', 'conversions', 'retention', 'load time'].includes(el.nextElementSibling.textContent.toLowerCase());
-        const isMillions = el.nextElementSibling.textContent.toLowerCase() === 'impressions';
-        const isTopPercent = el.nextElementSibling.textContent.toLowerCase() === 'performance';
-        if (isPercentage) el.textContent = (targetValue > 0 ? '+' : '') + targetValue + '%';
-        else if (isMillions) el.textContent = targetValue.toFixed(1) + 'M';
-        else if (isTopPercent) el.textContent = 'Top ' + targetValue + '%';
-        else el.textContent = targetValue;
+        // Simplified metric display logic
+        el.textContent = el.dataset.metricValue;
       });
-      return; // Skip all animation setup
+      return;
     }
 
-    // --- IF MOTION IS OK, PROCEED WITH ANIMATIONS ---
-
     // Set initial states for animations
-    gsap.set(".project-card", { opacity: 0, y: 100 });
+    gsap.set(".project-card", { opacity: 0 });
 
-    // --- Animations that run on all screen sizes ---
+    // Header animation
     gsap.from(headline.value, { delay: 0.2, opacity: 0, y: 50, duration: 1, ease: 'power4.out', stagger: 0.2 });
     gsap.from(intro.value, { delay: 0.8, opacity: 0, y: 30, duration: 1, ease: 'power4.out' });
 
+    // --- BATCH ANIMATION WITH VARIETY ---
     ScrollTrigger.batch(".project-card", {
-      start: "top 80%",
+      start: "top 85%",
       onEnter: batch => {
-        gsap.to(batch, {
-          opacity: 1, y: 0, stagger: 0.15, ease: "power4.out", duration: 1,
-          onComplete: () => batch.forEach(card => animateCardContents(card))
+        batch.forEach((card, index) => {
+          const animType = card.dataset.animation;
+          let fromState = { opacity: 0, ease: "power4.out", duration: 1, stagger: 0.15 };
+
+          if (animType === 'from-left') {
+            fromState.x = -100;
+          } else if (animType === 'from-right') {
+            fromState.x = 100;
+          } else { // 'from-bottom'
+            fromState.y = 100;
+          }
+
+          gsap.fromTo(card, fromState, {
+            opacity: 1,
+            x: 0,
+            y: 0,
+            onComplete: () => animateCardContents(card)
+          });
         });
       },
-      onLeaveBack: batch => gsap.to(batch, { opacity: 0, y: 100, stagger: 0.1, ease: "power2.in" }),
+      onLeaveBack: batch => {
+        gsap.to(batch, { opacity: 0, y: 100, stagger: 0.1, ease: "power2.in" });
+      },
     });
 
     function animateCardContents(card) {
-        const metricElements = card.querySelectorAll('[data-metric-value]');
-        metricElements.forEach(el => {
-            const targetValue = parseFloat(el.dataset.metricValue);
-            const isPercentage = ['engagement', 'conversions', 'retention', 'load time'].includes(el.nextElementSibling.textContent.toLowerCase());
-            const isMillions = el.nextElementSibling.textContent.toLowerCase() === 'impressions';
-            const isTopPercent = el.nextElementSibling.textContent.toLowerCase() === 'performance';
-            let counter = { val: 0 };
-            gsap.to(counter, {
-                val: targetValue, duration: 2, ease: 'circ.out',
-                onUpdate: () => {
-                    if (isPercentage) el.textContent = (targetValue > 0 ? '+' : '') + Math.ceil(counter.val) + '%';
-                    else if (isMillions) el.textContent = counter.val.toFixed(1) + 'M';
-                    else if (isTopPercent) el.textContent = 'Top ' + Math.ceil(counter.val) + '%';
-                    else el.textContent = Math.ceil(counter.val);
-                }
-            });
+      // Animate metrics
+      card.querySelectorAll('[data-metric-value]').forEach(el => {
+        const targetValue = parseFloat(el.dataset.metricValue);
+        let counter = { val: 0 };
+        gsap.to(counter, {
+          val: targetValue,
+          duration: 2,
+          ease: 'circ.out',
+          onUpdate: () => {
+            // This logic can be expanded to handle different formats like %, M, etc.
+            el.textContent = counter.val.toFixed(targetValue % 1 !== 0 ? 1 : 0);
+          }
         });
-        gsap.from(card.querySelectorAll('.tech-tag'), { opacity: 0, y: 20, duration: 0.5, ease: 'power2.out', stagger: 0.1, delay: 0.5 });
+      });
+      // Animate tech tags
+      gsap.from(card.querySelectorAll('.tech-tag'), { opacity: 0, y: 20, duration: 0.5, ease: 'power2.out', stagger: 0.1, delay: 0.5 });
     }
 
-    // --- Responsive Animations using matchMedia ---
+    // --- RESPONSIVE ANIMATIONS ---
     ScrollTrigger.matchMedia({
       "(min-width: 768px)": function() {
+        // Motion Path
         gsap.set(orb.value, { opacity: 1 });
         gsap.to(orb.value, {
           motionPath: { path: path.value, align: path.value, alignOrigin: [0.5, 0.5], autoRotate: true },
           scrollTrigger: { trigger: main.value, start: 'top top', end: 'bottom bottom', scrub: 1.5 },
           ease: 'power1.inOut'
         });
-        const buttons = self.selector('.case-study-btn');
-        buttons.forEach(btn => {
+        // Magnetic Buttons
+        self.selector('.case-study-btn').forEach(btn => {
             let boundingRect;
             btn.addEventListener('mouseenter', () => { boundingRect = btn.getBoundingClientRect(); });
             btn.addEventListener('mousemove', e => {
                 const { clientX, clientY } = e;
-                const x = clientX - boundingRect.left - boundingRect.width / 2;
-                const y = clientY - boundingRect.top - boundingRect.height / 2;
-                gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.7, ease: 'power3.out' });
+                gsap.to(btn, {
+                    x: (clientX - boundingRect.left - boundingRect.width / 2) * 0.3,
+                    y: (clientY - boundingRect.top - boundingRect.height / 2) * 0.3,
+                    duration: 0.7, ease: 'power3.out'
+                });
             });
             btn.addEventListener('mouseleave', () => {
                 gsap.to(btn, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.3)' });
@@ -177,9 +196,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (ctx) {
-    ctx.revert();
-  }
+  if (ctx) ctx.revert();
 });
 </script>
 

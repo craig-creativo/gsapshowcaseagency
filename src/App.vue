@@ -1,13 +1,18 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import gsap from 'gsap';
-import ShowcaseSection from './components/ShowcaseSection.vue'
 
+// Import all the page components
+import AnimatedBackground from './components/AnimatedBackground.vue';
+import HeroSection from './components/HeroSection.vue';
+import ShowcaseSection from './components/ShowcaseSection.vue';
+import Footer from './components/Footer.vue';
+
+// Refs for the custom cursor
 const cursor = ref(null);
 const follower = ref(null);
 
 onMounted(() => {
-  // Respects user's motion preference
   const motionMatch = window.matchMedia("(prefers-reduced-motion: reduce)");
 
   if (!motionMatch.matches) {
@@ -44,10 +49,18 @@ onMounted(() => {
 </script>
 
 <template>
+  <!-- Custom cursor elements -->
   <div ref="cursor" class="custom-cursor__dot"></div>
   <div ref="follower" class="custom-cursor__follower"></div>
-  <main>
+
+  <!-- Animated background sits behind everything -->
+  <AnimatedBackground />
+
+  <!-- Main page content -->
+  <main class="relative z-10">
+    <HeroSection />
     <ShowcaseSection />
+    <Footer />
   </main>
 </template>
 
@@ -55,7 +68,6 @@ onMounted(() => {
 body {
   background-color: #0a0a0a;
   color: #f0f0f0;
-  /* Hide cursor only if motion is not reduced */
   cursor: default;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
@@ -90,5 +102,11 @@ body {
   pointer-events: none;
   z-index: 9998;
   transition: background-color 0.3s ease;
+}
+
+/* Ensure main content is above the background */
+main {
+  position: relative;
+  z-index: 10;
 }
 </style>
